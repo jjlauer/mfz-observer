@@ -9,3 +9,9 @@ mfizz-observer-metric/target/
 /mfz-observer-metric/target/
 /mfz-observer-server/target/
 /target/
+/mfz-observer-metric/.settings/
+/mfz-observer-common/.settings/
+/mfz-observer-jackson/.settings/
+/mfz-observer-core/.settings/
+/.settings/
+/mfz-observer-server/.settings/
