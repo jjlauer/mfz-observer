@@ -24,7 +24,7 @@ package com.mfizz.observer.metric;
  * 
  * @author joe@mfizz.com
  */
-public abstract class BaseLongObserveMetric<M extends ObserveMetric, S extends ObserveSummaryMetric> implements ObserveMetric<M,S> {
+public abstract class BaseLongObserveMetric implements ObserveMetric {
     
     protected long value;
     
@@ -53,6 +53,11 @@ public abstract class BaseLongObserveMetric<M extends ObserveMetric, S extends O
     public ObserveMetric get(String name) {
         // no sub-metrics -- always return a null chainer
         return NullObserveMetric.INSTANCE;
+    }
+    
+    @Override
+    public ObserveMetric getUnsafely(String name) {
+        return null;
     }
 
     @Override

@@ -20,20 +20,14 @@ package com.mfizz.observer.metric;
  * #L%
  */
 
-import com.mfizz.util.TimePeriod;
+import com.mfizz.observer.common.ResetDetectedException;
 
-public interface ObserveSummaryMetric<M> {
+/**
+ *
+ * @author joe@mfizz.com
+ */
+public interface ObserveMetricDelta<M extends ObserveMetric> {
     
-    // methods always present on all metrics
-    
-    public boolean contains(String name);
-    
-    public ObserveSummaryMetric get(String name);
-    
-    // methods for summarizing
-    
-    public void summarize(TimePeriod period, M aggData) throws Exception;
-    
-    public void summarizeComplete(TimePeriod period, int count) throws Exception;
+    public void delta(M currentData, M lastData) throws ResetDetectedException, Exception;
     
 }

@@ -31,7 +31,7 @@ import com.mfizz.observer.common.ResetDetectedException;
   * 
  * @author joe@mfizz.com
  */
-public class LongGauge extends BaseLongObserveMetric<LongGauge, LongSummaryGauge> {
+public class LongGauge extends BaseLongObserveMetric implements ObserveMetricDelta<LongGauge>, ObserveMetricAggregate<LongGauge> {
     
     public LongGauge() {
         // do nothing
@@ -45,11 +45,6 @@ public class LongGauge extends BaseLongObserveMetric<LongGauge, LongSummaryGauge
     public void delta(LongGauge currentData, LongGauge lastData) throws ResetDetectedException, Exception {
         // current measurement is best value to use for delta
         this.value = currentData.value;
-    }
-    
-    @Override
-    public boolean shouldAggregate() {
-        return true;
     }
     
     @Override

@@ -36,10 +36,9 @@ import java.util.concurrent.TimeUnit;
      - NameOfPropertyAvgRate, NameOfPropertyMinRate, NameOfPropertyMaxRate
  * @author joe@mfizz.com
  */
-public class LongSummaryCounter implements ObserveSummaryMetric<LongCounter> {
+public class LongSummaryCounter extends BaseLongObserveMetric implements ObserveMetricSummary<LongCounter> {
     
     // additional vars tracked
-    private long value;
     private TimeUnit rateUnit;
     private double avgRate;
     private Double minRate;
@@ -59,12 +58,23 @@ public class LongSummaryCounter implements ObserveSummaryMetric<LongCounter> {
     }
     
     @Override
-    public ObserveSummaryMetric get(String name) {
-        return NullObserveSummaryMetric.INSTANCE;
+    public ObserveMetric get(String name) {
+        return NullObserveMetric.INSTANCE;
+    }
+    
+    @Override
+    public ObserveMetric getUnsafely(String name) {
+        return null;
     }
 
-    public long getValue() {
-        return value;
+    @Override
+    public Long getLong() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public String getString() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public TimeUnit getRateUnit() {

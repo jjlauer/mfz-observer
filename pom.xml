@@ -4,14 +4,27 @@
     <groupId>com.mfizz</groupId>
     <artifactId>mfz-observer</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>mfz-observer</name>
+    <description>Java framework for observing metrics across distributed nodes</description>
+    <url>http://code.google.com/p/mfz-observer/</url>
   
     <parent>
         <groupId>com.mfizz</groupId>
         <artifactId>mfz-maven-parent</artifactId>
         <version>1.4</version>
     </parent>
+
+    <scm>
+        <url>http://code.google.com/p/mfz-observer/source/browse/</url>
+        <connection>scm:git:https://code.google.com/p/mfz-observer/</connection>
+    </scm>
+
+    <developers>
+        <developer>
+            <email>joe@mfizz.com</email>
+        </developer>
+    </developers>
 
     <modules>
         <module>mfz-observer-common</module>
@@ -44,6 +57,7 @@
     </dependencies>
 
     <properties>
+        <mfz-observer.version>1.1.0</mfz-observer.version>
         <mfz-util.version>[1.0.0,)</mfz-util.version>
         <junit.version>4.10</junit.version>
         <dropwizard.version>0.5.1</dropwizard.version>

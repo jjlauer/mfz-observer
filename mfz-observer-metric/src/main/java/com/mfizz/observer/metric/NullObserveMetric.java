@@ -20,13 +20,11 @@ package com.mfizz.observer.metric;
  * #L%
  */
 
-import com.mfizz.observer.common.ResetDetectedException;
-
 /**
  *
  * @author joe@mfizz.com
  */
-public class NullObserveMetric implements ObserveMetric<LongSnapshot,NullObserveSummaryMetric> {
+public class NullObserveMetric implements ObserveMetric {
 
     static public NullObserveMetric INSTANCE = new NullObserveMetric();
     
@@ -40,6 +38,11 @@ public class NullObserveMetric implements ObserveMetric<LongSnapshot,NullObserve
         // always returns itself (for chaining)
         return this;
     }
+    
+    @Override
+    public ObserveMetric getUnsafely(String name) {
+        return null;
+    }
 
     @Override
     public Long getLong() {
@@ -49,27 +52,6 @@ public class NullObserveMetric implements ObserveMetric<LongSnapshot,NullObserve
     @Override
     public String getString() {
         return null;
-    }
-
-    @Override
-    public void delta(LongSnapshot currentData, LongSnapshot lastData) throws ResetDetectedException, Exception {
-        // do nothing
-    }
-
-    @Override
-    public boolean shouldAggregate() {
-        return false;
-    }
-
-    @Override
-    public void aggregate(LongSnapshot deltaData) throws Exception {
-        // do nothing
-    }
-
-    @Override
-    public NullObserveSummaryMetric createSummaryMetric() {
-        // always same instance to a null summary metric
-        return NullObserveSummaryMetric.INSTANCE;
     }
     
 }

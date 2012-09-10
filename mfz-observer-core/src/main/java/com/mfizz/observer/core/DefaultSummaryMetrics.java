@@ -20,21 +20,22 @@ package com.mfizz.observer.core;
  * #L%
  */
 
-import com.mfizz.observer.metric.SummaryMetricMap;
+import com.mfizz.observer.metric.MetricMap;
+import com.mfizz.observer.metric.MetricPath;
 import com.mfizz.util.TimePeriod;
 
 /**
  *
  * @author joe@mfizz.com
  */
-public class DefaultSummaryMetrics extends SummaryMetricMap implements Summary<DefaultAggregateMetrics> {
+public class DefaultSummaryMetrics extends MetricMap implements Summary<DefaultAggregateMetrics> {
 
+    // add a few properties onto default summary map
     private TimePeriod period;
     private int count;
-    //private Map<String,ObserveSummaryMetric> metrics;
 
     public DefaultSummaryMetrics() {
-        //this.metrics = new HashMap<String,ObserveSummaryMetric>();
+        // do nothing
     }
     
     @Override
@@ -45,12 +46,21 @@ public class DefaultSummaryMetrics extends SummaryMetricMap implements Summary<D
     public int getCount() {
         return count;
     }
-
-    /**
-    public Map<String,ObserveSummaryMetric> getMetrics() {
-        return (Map<String,ObserveSummaryMetric>)this.metrics;
+    
+    @Override
+    public DefaultSummaryMetrics filter(MetricPath ... path) {
+        // call underlying filter method
+        MetricMap filter = super.filter(path);
+        if (filter != null) {
+            DefaultSummaryMetrics newmetrics = new DefaultSummaryMetrics();
+            newmetrics.count = this.count;
+            newmetrics.period = this.period;
+            newmetrics.metrics = filter.getMetrics();
+            return newmetrics;
+        } else {
+            return null;
+        }
     }
-    */
     
     @Override
     public void summarizeBegin() throws Exception {
@@ -61,37 +71,12 @@ public class DefaultSummaryMetrics extends SummaryMetricMap implements Summary<D
     public void summarize(TimePeriod period, DefaultAggregateMetrics aggData) throws Exception {
         super.summarize(period, aggData);
     }
-    
-    /**
-    @Override
-    public void summarize(TimePeriod period, DefaultAggregateMetrics aggData) throws Exception {
-        // loop thru metrics in delta data -- so we can create new metrics and aggregate them
-        for (Map.Entry<String,ObserveMetric> entry : aggData.getMetrics().entrySet()) {
-            String metricName = entry.getKey();
-            ObserveMetric aggMetric = entry.getValue();
-            
-            // get or create new summary metric
-            ObserveSummaryMetric sumMetric = this.metrics.get(metricName);
-            if (sumMetric == null) {
-                sumMetric = aggMetric.createSummaryMetric();
-                this.metrics.put(metricName, sumMetric);
-            }
-            
-            // time to summarize this from the aggregrate metric
-            sumMetric.summarize(period, aggMetric);
-        }
-    }
-    */
 
     @Override
     public void summarizeComplete(TimePeriod period, int count) throws Exception {
         this.period = period;
         this.count = count;
         super.summarizeComplete(period, count);
-        // loop thru metrics in delta data -- so we can create new metrics and aggregate them
-        //for (ObserveSummaryMetric sumMetric : metrics.values()) {
-        //    sumMetric.summarizeComplete(period, count);
-        //}
     }
     
 }

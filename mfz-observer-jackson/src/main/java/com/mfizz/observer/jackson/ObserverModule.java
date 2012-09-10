@@ -28,7 +28,6 @@ import com.mfizz.observer.metric.LongSummaryCounter;
 import com.mfizz.observer.metric.LongSummaryGauge;
 import com.mfizz.observer.metric.MetricMap;
 import com.mfizz.observer.metric.StringSnapshot;
-import com.mfizz.observer.metric.SummaryMetricMap;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.module.SimpleModule;
 
@@ -48,7 +47,6 @@ public class ObserverModule extends SimpleModule {
         addSerializer(LongGauge.class, new LongGaugeSerializer());
         addSerializer(LongSummaryCounter.class, new LongSummaryCounterSerializer());
         addSerializer(LongSummaryGauge.class, new LongSummaryGaugeSerializer());
-        addSerializer(SummaryMetricMap.class, new SummaryMetricMapSerializer());
         addSerializer(MetricMap.class, new MetricMapSerializer());
         addSerializer(LongSnapshot.class, new LongSnapshotSerializer());
         addSerializer(StringSnapshot.class, new StringSnapshotSerializer());

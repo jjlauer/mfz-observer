@@ -21,6 +21,7 @@ package com.mfizz.observer.metric;
  */
 
 import com.mfizz.observer.common.ResetDetectedException;
+import com.mfizz.util.TimePeriod;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +30,7 @@ import java.util.Map;
  * 
  * @author joe@mfizz.com
  */
-public class MetricMap implements ObserveMetric<MetricMap,SummaryMetricMap> {
+public class MetricMap implements ObserveMetric, ObserveMetricDelta<MetricMap>, ObserveMetricAggregate<MetricMap>, ObserveMetricSummary<MetricMap> {
     
     protected Map<String,ObserveMetric> metrics;
     
@@ -41,8 +42,8 @@ public class MetricMap implements ObserveMetric<MetricMap,SummaryMetricMap> {
         return metrics;
     }
     
-    public void put(String name, ObserveMetric metric) {
-        this.metrics.put(name, metric);
+    public ObserveMetric put(String name, ObserveMetric metric) {
+        return this.metrics.put(name, metric);
     }
     
     @Override
@@ -61,6 +62,11 @@ public class MetricMap implements ObserveMetric<MetricMap,SummaryMetricMap> {
     }
     
     @Override
+    public ObserveMetric getUnsafely(String name) {
+        return this.metrics.get(name);
+    }
+    
+    @Override
     public Long getLong() {
         // no actual value for a map - always return null
         return null;
@@ -70,6 +76,77 @@ public class MetricMap implements ObserveMetric<MetricMap,SummaryMetricMap> {
     public String getString() {
         // no actual value for a map - always return null
         return null;
+    }
+    
+    public void put(MetricPath path, ObserveMetric metric) {
+        String[] names = path.getNames();
+        MetricMap lastMap = this;
+        int lastIndex = names.length - 1;
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i];
+            
+            // if this is the last index (put the metric here)
+            if (i == lastIndex) {
+                lastMap.put(name, metric);
+            } else {
+                // try to get the submap of this
+                MetricMap subMap = null;
+                ObserveMetric tempSubMetric = lastMap.getUnsafely(name);
+                
+                // if a metric with that name already exists verify its a map!
+                if (tempSubMetric != null) {
+                    if (tempSubMetric instanceof MetricMap) {
+                        subMap = (MetricMap)tempSubMetric;
+                    } else {
+                        throw new IllegalArgumentException("metric [" + name + "] already exists in path [" + path + "] with type [" + tempSubMetric.getClass().getSimpleName() + "]");
+                    }
+                } else {
+                    subMap = new MetricMap();
+                    lastMap.put(name, subMap);
+                }
+                
+                lastMap = subMap;
+            }
+        }
+    }
+    
+    public ObserveMetric get(MetricPath path) {
+        String[] names = path.getNames();
+        ObserveMetric lastMetric = null;
+        search:
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i];
+            if (lastMetric == null) {
+                // first search this map
+                lastMetric = getUnsafely(name);
+            } else {
+                // search within the last metric
+                lastMetric = lastMetric.getUnsafely(name);
+            }
+            // if last metric is still null then the path doesn't exist
+            if (lastMetric == null) {
+                break search;
+            }
+        }
+        return lastMetric;
+    }
+    
+    public MetricMap filter(MetricPath ... filters) {
+        // generate a new metric map that only includes filtered metric names
+        MetricMap filtermap = null;
+        for (MetricPath f : filters) {
+            // get the metric for this path
+            ObserveMetric metric = get(f);
+            // if a metric was found then add it to the filter map
+            if (metric != null) {
+                // add this metric to the map (at the correct path!)
+                if (filtermap == null) {
+                    filtermap = new MetricMap();
+                }
+                filtermap.put(f, metric);
+            }
+        }
+        return filtermap;
     }
     
     // specifics that are better to use
@@ -86,52 +163,6 @@ public class MetricMap implements ObserveMetric<MetricMap,SummaryMetricMap> {
         }
     }
     
-    /**
-    public Long getLong(String name) {
-        ObserveMetric metric = this.metrics.get(name);
-        if (metric == null) {
-            return null;
-        }
-        if (metric instanceof LongSnapshot) {
-            return ((LongSnapshot)metric).getValue();
-        } else if (metric instanceof LongCounter) {
-            return ((LongCounter)metric).getValue();
-        } else if (metric instanceof LongGauge) {
-            return ((LongGauge)metric).getValue();
-        } else {
-            return null;
-        }
-    }
-    
-    public String getString(String name) {
-        ObserveMetric metric = this.metrics.get(name);
-        if (metric == null) {
-            return null;
-        }
-        if (metric instanceof StringSnapshot) {
-            return ((StringSnapshot)metric).getValue();
-        } else {
-            return null;
-        }
-    }
-    
-    public LongSnapshot getLongSnapshot(String name) {
-        return (LongSnapshot)this.metrics.get(name);
-    }
-    
-    public StringSnapshot getStringSnapshot(String name) {
-        return (StringSnapshot)this.metrics.get(name);
-    }
-    
-    public LongCounter getLongCounter(String name) {
-        return (LongCounter)this.metrics.get(name);
-    }
-    
-    public LongGauge getLongGauge(String name) {
-        return (LongGauge)this.metrics.get(name);
-    }
-    */
-    
     @Override
     public void delta(MetricMap currentData, MetricMap lastData) throws ResetDetectedException, Exception {
         // loop thru metrics in current data -- so we can create new delta'ed metrics
@@ -147,16 +178,15 @@ public class MetricMap implements ObserveMetric<MetricMap,SummaryMetricMap> {
             }
 
             // create a new instance of the exact type of metric in currentData
-            ObserveMetric deltaMetric = entry.getValue().getClass().newInstance();
-            deltaMetric.delta(currentMetric, lastMetric);
+            ObserveMetric newDeltaMetric = entry.getValue().getClass().newInstance();
             
-            this.metrics.put(metricName, deltaMetric);
+            // verify this metric can be "delta"'ed or "aggregate"'ed
+            if (newDeltaMetric instanceof ObserveMetricDelta) {
+                ObserveMetricDelta deltaMetric = (ObserveMetricDelta)newDeltaMetric;
+                deltaMetric.delta(currentMetric, lastMetric);
+                this.metrics.put(metricName, newDeltaMetric);
+            }
         }
-    }
-    
-    @Override
-    public boolean shouldAggregate() {
-        return true;
     }
     
     @Override
@@ -166,22 +196,72 @@ public class MetricMap implements ObserveMetric<MetricMap,SummaryMetricMap> {
             String metricName = entry.getKey();
             ObserveMetric deltaMetric = entry.getValue();
             
-            if (deltaMetric.shouldAggregate()) {
+            if (deltaMetric instanceof ObserveMetricAggregate) {
                 // get or create new aggregate metric
-                ObserveMetric aggMetric = this.metrics.get(metricName);
-                if (aggMetric == null) {
-                    aggMetric = deltaMetric.getClass().newInstance();
-                    this.metrics.put(metricName, aggMetric);
+                ObserveMetric newAggMetric = this.metrics.get(metricName);
+                if (newAggMetric == null) {
+                    // we already know that "deltaMetric" supports aggregates - so we should be fine
+                    newAggMetric = deltaMetric.getClass().newInstance();
+                    this.metrics.put(metricName, newAggMetric);
                 }
 
-                // time to aggregate the delta data into the aggregate metric
-                aggMetric.aggregate(deltaMetric);
+                if (newAggMetric instanceof ObserveMetricAggregate) {
+                    ObserveMetricAggregate aggMetric = (ObserveMetricAggregate)newAggMetric;
+                    // time to aggregate the delta data into the aggregate metric
+                    aggMetric.aggregate(deltaMetric);
+                }
             }
         }
     }
     
     @Override
-    public SummaryMetricMap createSummaryMetric() {
-        return new SummaryMetricMap();
+    public MetricMap createSummaryMetric() {
+        return new MetricMap();
     }
+    
+    @Override
+    public void summarize(TimePeriod period, MetricMap aggData) throws Exception {
+        // loop thru metrics in delta data -- so we can create new metrics and aggregate them
+        for (Map.Entry<String,ObserveMetric> entry : aggData.getMetrics().entrySet()) {
+            String metricName = entry.getKey();
+            ObserveMetric newAggMetric = entry.getValue();
+            
+            if (newAggMetric instanceof ObserveMetricAggregate) {
+                ObserveMetricAggregate aggMetric = (ObserveMetricAggregate)newAggMetric;
+                
+                // get or create new summary metric
+                ObserveMetric newSumMetric = this.metrics.get(metricName);
+                if (newSumMetric == null) {
+                    newSumMetric = aggMetric.createSummaryMetric();
+                    this.metrics.put(metricName, newSumMetric);
+                }
+                
+                if (newSumMetric instanceof ObserveMetricSummary) {
+                    ObserveMetricSummary sumMetric = (ObserveMetricSummary)newSumMetric;
+                    // time to summarize this from the aggregrate metric
+                    sumMetric.summarize(period, newAggMetric);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void summarizeComplete(TimePeriod period, int count) throws Exception {
+        // finishing summarizing all metrics
+        for (ObserveMetric metric : metrics.values()) {
+            if (metric instanceof ObserveMetricSummary) {
+                ObserveMetricSummary sumMetric = (ObserveMetricSummary)metric;
+                sumMetric.summarizeComplete(period, count);
+            }
+        }
+    }
+
+    public int size() {
+        return this.metrics.size();
+    }
+
+    public boolean isEmpty() {
+        return this.metrics.isEmpty();
+    }
+    
 }

@@ -33,7 +33,7 @@ import com.mfizz.observer.common.ResetDetectedException;
      - NameOfPropertyAvgRate, NameOfPropertyMinRate, NameOfPropertyMaxRate
  * @author joe@mfizz.com
  */
-public class LongCounter extends BaseLongObserveMetric<LongCounter, LongSummaryCounter> {
+public class LongCounter extends BaseLongObserveMetric implements ObserveMetricDelta<LongCounter>, ObserveMetricAggregate<LongCounter> {
     
     public LongCounter() {
         // do nothing
@@ -52,11 +52,6 @@ public class LongCounter extends BaseLongObserveMetric<LongCounter, LongSummaryC
             throw new ResetDetectedException();
         }
         this.value = deltaValue;
-    }
-    
-    @Override
-    public boolean shouldAggregate() {
-        return true;
     }
     
     @Override

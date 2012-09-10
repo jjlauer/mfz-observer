@@ -1,0 +1,3 @@
+
+# to update all child modules to match parent module
+mvn versions:update-child-modules

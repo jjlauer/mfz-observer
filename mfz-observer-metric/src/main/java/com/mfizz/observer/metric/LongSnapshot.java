@@ -27,7 +27,7 @@ import com.mfizz.observer.common.ResetDetectedException;
  * 
  * @author joe@mfizz.com
  */
-public class LongSnapshot extends BaseLongObserveMetric<LongSnapshot,NullObserveSummaryMetric> {
+public class LongSnapshot extends BaseLongObserveMetric implements ObserveMetricDelta<LongSnapshot> {
     
     protected boolean absolute;
     
@@ -52,21 +52,6 @@ public class LongSnapshot extends BaseLongObserveMetric<LongSnapshot,NullObserve
         }
         // current value is the best "delta"
         this.value = currentData.value;
-    }
-    
-    @Override
-    public boolean shouldAggregate() {
-        return false;
-    }
-    
-    @Override
-    public void aggregate(LongSnapshot deltaData) throws Exception {
-        // no aggregation in a snapshot
-    }
-    
-    @Override
-    public NullObserveSummaryMetric createSummaryMetric() {
-        return NullObserveSummaryMetric.INSTANCE;
     }
     
 }

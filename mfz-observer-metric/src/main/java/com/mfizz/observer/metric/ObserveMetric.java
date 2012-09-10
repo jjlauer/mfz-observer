@@ -20,13 +20,11 @@ package com.mfizz.observer.metric;
  * #L%
  */
 
-import com.mfizz.observer.common.ResetDetectedException;
-
 /**
  *
  * @author joe@mfizz.com
  */
-public interface ObserveMetric<M extends ObserveMetric, S extends ObserveSummaryMetric> {
+public interface ObserveMetric {
     
     // methods always present on all metrics
     
@@ -34,19 +32,10 @@ public interface ObserveMetric<M extends ObserveMetric, S extends ObserveSummary
     
     public ObserveMetric get(String name);
     
+    public ObserveMetric getUnsafely(String name);
+    
     public Long getLong();
     
     public String getString();
-    
-    
-    // methods for deltas and aggregates
-    
-    public void delta(M currentData, M lastData) throws ResetDetectedException, Exception;
-    
-    public boolean shouldAggregate();
-    
-    public void aggregate(M deltaData) throws Exception;
-    
-    public S createSummaryMetric();
     
 }

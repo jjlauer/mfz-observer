@@ -20,38 +20,14 @@ package com.mfizz.observer.metric;
  * #L%
  */
 
-import com.mfizz.util.TimePeriod;
-
 /**
- * 
+ *
  * @author joe@mfizz.com
  */
-public class NullObserveSummaryMetric implements ObserveSummaryMetric<Object> {
+public interface ObserveMetricAggregate<M extends ObserveMetric> {
     
-    static public NullObserveSummaryMetric INSTANCE = new NullObserveSummaryMetric();
+    public void aggregate(M deltaData) throws Exception;
     
-    public NullObserveSummaryMetric() {
-        // do nothing
-    }
-    
-    @Override
-    public boolean contains(String name) {
-        return false;
-    }
-    
-    @Override
-    public ObserveSummaryMetric get(String name) {
-        return INSTANCE;
-    }
-    
-    @Override
-    public void summarize(TimePeriod period, Object aggValue) throws Exception {
-        // do nothing
-    }
-    
-    @Override
-    public void summarizeComplete(TimePeriod period, int count) throws Exception {
-        // do nothing
-    }
+    public ObserveMetric createSummaryMetric();
     
 }

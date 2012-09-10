@@ -24,12 +24,15 @@ import com.mfizz.observer.common.SummaryPeriod;
 import com.mfizz.observer.core.DefaultMetrics;
 import com.mfizz.observer.core.DefaultServiceObserver;
 import com.mfizz.observer.core.DefaultSummaryMetrics;
+import com.mfizz.observer.core.ObserveDeltaSnapshot;
+import com.mfizz.observer.core.ObserveSnapshot;
 import com.mfizz.observer.core.Observer;
 import com.mfizz.observer.core.ServiceObserver;
 import com.mfizz.observer.core.ServiceObserverConfiguration;
 import com.mfizz.observer.core.ServiceObservers;
 import com.mfizz.observer.core.SummaryGroup;
 import com.mfizz.observer.jackson.ObserverModule;
+import com.mfizz.observer.metric.MetricPath;
 import com.sun.jersey.api.NotFoundException;
 import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
@@ -203,6 +206,58 @@ public class ServicesApiResource {
         }
     }
     
+    @GET @Timed @Path("/{serviceName}/observers/snapshot")
+    public String getObserversSnapshot(@PathParam("serviceName") String serviceName, @QueryParam("filter") List<String> filters) throws Exception {
+        DefaultServiceObserver so = getServiceObserver(serviceName);
+        
+        // safe to call this everytime
+        MetricPath[] paths = createMetricPathArray(filters);
+        
+        // create sorted map of observer info
+        TreeMap<String,Object> observers = new TreeMap<String,Object>();
+        for (Observer<DefaultMetrics> ob : so.getObservers().values()) {
+            ObserveSnapshot<DefaultMetrics> snapshot = ob.getSnapshot();
+            
+            // should we attempt to filter?
+            if (snapshot != null && paths != null) {
+                DefaultMetrics metrics = snapshot.getData();
+                // filter metrics by paths and we will only use the new metrics
+                metrics = metrics.filter(paths);
+                snapshot = new ObserveSnapshot<DefaultMetrics>(snapshot.getTimestamp(), metrics);
+            }
+            
+            observers.put(ob.getName(), snapshot);
+        }
+       
+        return mapper.writeValueAsString(observers);
+    }
+    
+    @GET @Timed @Path("/{serviceName}/observers/delta")
+    public String getObserversDelta(@PathParam("serviceName") String serviceName, @QueryParam("filter") List<String> filters) throws Exception {
+        DefaultServiceObserver so = getServiceObserver(serviceName);
+        
+        // safe to call this everytime
+        MetricPath[] paths = createMetricPathArray(filters);
+        
+        // create sorted map of observer info
+        TreeMap<String,Object> observers = new TreeMap<String,Object>();
+        for (Observer<DefaultMetrics> ob : so.getObservers().values()) {
+            ObserveDeltaSnapshot<DefaultMetrics> snapshot = ob.getDeltaSnapshot();
+            
+            // should we attempt to filter?
+            if (snapshot != null && paths != null) {
+                DefaultMetrics metrics = snapshot.getData();
+                // filter metrics by paths and we will only use the new metrics
+                metrics = metrics.filter(paths);
+                snapshot = new ObserveDeltaSnapshot<DefaultMetrics>(snapshot.getPeriod(), metrics);
+            }
+            
+            observers.put(ob.getName(), snapshot);
+        }
+       
+        return mapper.writeValueAsString(observers);
+    }
+    
     @GET @Timed @Path("/{serviceName}/observers/{observerName}")
     public String getObserver(@PathParam("serviceName") String serviceName, @PathParam("observerName") String observerName) throws Exception {
         DefaultServiceObserver so = getServiceObserver(serviceName);
@@ -264,9 +319,12 @@ public class ServicesApiResource {
     }
     
     @GET @Timed @Path("/{serviceName}/groups/{groupName}/metrics")
-    public String getGroupMetrics(@PathParam("serviceName") String serviceName, @PathParam("groupName") String groupName, @QueryParam("verbose") BooleanParam verbose) throws Exception {
+    public String getGroupMetrics(@PathParam("serviceName") String serviceName, @PathParam("groupName") String groupName, @QueryParam("verbose") BooleanParam verbose, @QueryParam("filter") List<String> filters) throws Exception {
         DefaultServiceObserver so = getServiceObserver(serviceName);
         SummaryGroup<DefaultSummaryMetrics> group = getGroup(so, groupName);
+        
+        // safe to call this everytime
+        MetricPath[] paths = createMetricPathArray(filters);
         
         // non-verbose mode is default (only list all period names)
         if (verbose == null || !verbose.get().booleanValue()) {
@@ -279,17 +337,51 @@ public class ServicesApiResource {
             // order of insertion important
             Map<String,DefaultSummaryMetrics> map = new LinkedHashMap<String,DefaultSummaryMetrics>();
             for (Map.Entry<SummaryPeriod,DefaultSummaryMetrics> entry : group.getValues().entrySet()) {
-                map.put(entry.getKey().getName(), entry.getValue());
+                DefaultSummaryMetrics metrics = entry.getValue();
+                
+                // was filtering requested?
+                if (paths != null) {
+                    // filter metrics by paths and we will only use the new metrics
+                    metrics = metrics.filter(paths);
+                }
+                
+                map.put(entry.getKey().getName(), metrics);
             }
             return mapper.writeValueAsString(map);
         }
     }
     
+    static public MetricPath[] createMetricPathArray(List<String> paths) {
+        if (paths == null || paths.isEmpty()) {
+            return null;
+        }
+        
+        // create array of filters
+        MetricPath[] patharray = new MetricPath[paths.size()];
+        int i = 0;
+        for (String p : paths) {
+            patharray[i] = new MetricPath(p);
+            i++;
+        }
+        
+        return patharray;
+    }
+    
     @GET @Timed @Path("/{serviceName}/groups/{groupName}/metrics/{periodName}")
-    public String getGroupMetric(@PathParam("serviceName") String serviceName, @PathParam("groupName") String groupName, @PathParam("periodName") String periodName) throws Exception {
+    public String getGroupMetric(@PathParam("serviceName") String serviceName, @PathParam("groupName") String groupName, @PathParam("periodName") String periodName, @QueryParam("filter") List<String> filters) throws Exception {
         DefaultServiceObserver so = getServiceObserver(serviceName);
         SummaryGroup<DefaultSummaryMetrics> group = getGroup(so, groupName);
         DefaultSummaryMetrics metrics = getMetrics(group, periodName);
+        
+        // safe to call this everytime
+        MetricPath[] paths = createMetricPathArray(filters);
+        
+        // was filtering requested?
+        if (paths != null) {
+            // filter metrics by paths and we will only use the new metrics
+            metrics = metrics.filter(paths);
+        }
+        
         return mapper.writeValueAsString(metrics);
     }
 }

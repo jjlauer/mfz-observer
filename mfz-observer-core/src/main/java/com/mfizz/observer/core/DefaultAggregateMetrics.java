@@ -29,10 +29,8 @@ import com.mfizz.util.TimePeriod;
  */
 public class DefaultAggregateMetrics extends MetricMap implements Aggregate<DefaultMetrics> {
     
-    //private Map<String,ObserveMetric> metrics;
-
     public DefaultAggregateMetrics() {
-        //this.metrics = new HashMap<String,ObserveMetric>();
+        // do nothing
     }
     
     /**
@@ -50,29 +48,6 @@ public class DefaultAggregateMetrics extends MetricMap implements Aggregate<Defa
     public void aggregate(String name, DefaultMetrics deltaData) throws Exception {
         super.aggregate(deltaData);
     }
-    
-    /**
-    @Override
-    public void aggregate(String name, DefaultMetrics deltaData) throws Exception {
-        // loop thru metrics in delta data -- so we can create new metrics and aggregate them
-        for (Map.Entry<String,ObserveMetric> entry : deltaData.getMetrics().entrySet()) {
-            String metricName = entry.getKey();
-            ObserveMetric deltaMetric = entry.getValue();
-            
-            if (deltaMetric.shouldAggregate()) {
-                // get or create new aggregate metric
-                ObserveMetric aggMetric = this.metrics.get(metricName);
-                if (aggMetric == null) {
-                    aggMetric = deltaMetric.getClass().newInstance();
-                    this.metrics.put(metricName, aggMetric);
-                }
-
-                // time to aggregate the delta data into the aggregate metric
-                aggMetric.aggregate(deltaMetric);
-            }
-        }
-    }
-    */
 
     @Override
     public void aggregateComplete(TimePeriod period, int count) throws Exception {

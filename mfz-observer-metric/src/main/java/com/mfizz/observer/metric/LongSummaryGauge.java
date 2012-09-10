@@ -31,25 +31,14 @@ import com.mfizz.util.TimePeriod;
   - SumValue doesn't exist, but avg/min/max of it does
  * @author joe@mfizz.com
  */
-public class LongSummaryGauge implements ObserveSummaryMetric<LongGauge> {
+public class LongSummaryGauge extends BaseLongObserveMetric implements ObserveMetricSummary<LongGauge> {
     
-    private long sumValue;
     private double avgValue;
     private Long minValue;
     private Long maxValue;
     
     public LongSummaryGauge() {
         // do nothing
-    }
-    
-    @Override
-    public boolean contains(String name) {
-        return false;
-    }
-    
-    @Override
-    public ObserveSummaryMetric get(String name) {
-        return NullObserveSummaryMetric.INSTANCE;
     }
 
     public double getAvgValue() {
@@ -66,7 +55,7 @@ public class LongSummaryGauge implements ObserveSummaryMetric<LongGauge> {
     
     @Override
     public void summarize(TimePeriod period, LongGauge aggValue) throws Exception {
-        this.sumValue += aggValue.getValue();
+        this.value += aggValue.getValue();
         if (minValue == null || aggValue.getValue() < minValue) {
             this.minValue = aggValue.getValue();
         }
@@ -78,7 +67,7 @@ public class LongSummaryGauge implements ObserveSummaryMetric<LongGauge> {
     @Override
     public void summarizeComplete(TimePeriod period, int count) throws Exception {
         // calculate avg value
-        this.avgValue = (double)this.sumValue/(double)count;
+        this.avgValue = (double)this.value/(double)count;
     }
 
     @Override

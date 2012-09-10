@@ -1,8 +1,8 @@
-package com.mfizz.observer.core;
+package com.mfizz.observer.metric;
 
 /*
  * #%L
- * mfizz-observer-core
+ * mfizz-observer-metric
  * %%
  * Copyright (C) 2012 mfizz
  * %%
@@ -20,25 +20,12 @@ package com.mfizz.observer.core;
  * #L%
  */
 
-/**
- *
- * @author joe@mfizz.com
- */
-public class ObserveSnapshot<D extends Delta> {
-    
-    final private long timestamp;
-    final private D data;
+import com.mfizz.util.TimePeriod;
 
-    public ObserveSnapshot(long timestamp, D data) {
-        this.timestamp = timestamp;
-        this.data = data;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
+public interface ObserveMetricSummary<M extends ObserveMetric> {
     
-    public D getData() {
-        return data;
-    }
+    public void summarize(TimePeriod period, M aggData) throws Exception;
+    
+    public void summarizeComplete(TimePeriod period, int count) throws Exception;
+    
 }
