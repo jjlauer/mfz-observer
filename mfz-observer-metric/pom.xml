@@ -20,7 +20,7 @@
         <dependency>
             <groupId>com.mfizz</groupId>
             <artifactId>mfz-util</artifactId>
-            <version>[1.0.0,)</version>
+            <version>${mfz-util.version}</version>
         </dependency>
     </dependencies>
     
