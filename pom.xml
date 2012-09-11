@@ -55,6 +55,17 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.3.2</version>
+            </plugin>
+        </plugins>
+    </build>
 
     <properties>
         <mfz-observer.version>1.1.0</mfz-observer.version>
