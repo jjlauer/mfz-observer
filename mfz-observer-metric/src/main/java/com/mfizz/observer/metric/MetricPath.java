@@ -22,8 +22,6 @@ package com.mfizz.observer.metric;
 
 /**
  * Represents an immutable path to a metric.
- * 
- * @author joelauer
  */
 public class MetricPath {
     

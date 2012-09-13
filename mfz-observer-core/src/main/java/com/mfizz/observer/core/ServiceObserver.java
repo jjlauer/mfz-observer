@@ -105,7 +105,7 @@ public class ServiceObserver<D extends Delta, A extends Aggregate, S extends Sum
         } else {
             this.ons = ons;
         }
-        this.snapshotAllTimer = Metrics.newTimer(new MetricName("com.cloudhopper.observer.ServiceObservers", serviceConfig.getName(), "snapshot-all-time"), TimeUnit.MILLISECONDS, TimeUnit.MILLISECONDS);
+        this.snapshotAllTimer = Metrics.newTimer(new MetricName("com.mfizz.observer.ServiceObservers", serviceConfig.getName(), "snapshot-all-time"), TimeUnit.MILLISECONDS, TimeUnit.MILLISECONDS);
         this.snapshotAllAttemptedCounter = new AtomicLong();
         this.snapshotAllCompletedCounter = new AtomicLong();
         this.lastSnapshotAllResult = new AtomicReference<SnapshotAllResult>();

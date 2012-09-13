@@ -89,7 +89,7 @@ public class Observer<D extends Delta> {
         this.snapshotCounterSet = new ConsecutiveCounterToggledSet();
         this.snapshotCompletedCounter = snapshotCounterSet.createToggledCounter();
         this.snapshotFailedCounter = snapshotCounterSet.createToggledCounter();
-        this.responseTimer = Metrics.newTimer(new MetricName("com.cloudhopper.observer.Observers", serviceConfig.getName(), "response-time", getName()), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+        this.responseTimer = Metrics.newTimer(new MetricName("com.mfizz.observer.Observers", serviceConfig.getName(), "response-time", getName()), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
         // for atomically storing observations
         this.lock = new ReentrantReadWriteLock();
         this.readLock = lock.readLock();
