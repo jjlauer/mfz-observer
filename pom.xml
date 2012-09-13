@@ -4,7 +4,7 @@
     <groupId>com.mfizz</groupId>
     <artifactId>mfz-observer</artifactId>
     <packaging>pom</packaging>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.1.1</version>
     <name>mfz-observer</name>
     <description>Java framework for observing metrics across distributed nodes</description>
     <url>http://code.google.com/p/mfz-observer/</url>
@@ -18,7 +18,8 @@
     <scm>
         <url>http://code.google.com/p/mfz-observer/source/browse/</url>
         <connection>scm:git:https://code.google.com/p/mfz-observer/</connection>
-    </scm>
+      <tag>mfz-observer-1.1.1</tag>
+  </scm>
 
     <developers>
         <developer>
